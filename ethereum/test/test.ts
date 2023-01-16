@@ -19,7 +19,7 @@ describe("Multimint contract", function () {
     let user1: SignerWithAddress;
     let user2: SignerWithAddress;
 
-    let systemWallet = new Wallet("ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
+    let systemWallet = new Wallet("ecff8b9c717a56b30f35a75db85342a1b42fcfe8540a733c73cc9ef38a165a56")
     const initialSupply = ethers.utils.parseEther("10000");
     const amountToTransfer = ethers.utils.parseEther("1000");
     const customCommission = ethers.utils.parseEther("100");
@@ -73,7 +73,6 @@ describe("Multimint contract", function () {
     });
 
     it("should be deployed with correct values", async function () {
-        expect(await bridgeContract.HUNDRED_PERCENT()).to.equal(100*100);
         expect(await bridgeContract.getStableCommissionPercent()).to.equal(stableCommissionPercent);
         expect(await tokenContract.balanceOf(user1.address)).to.equal(amountToTransfer);
     });
@@ -171,6 +170,7 @@ describe("Multimint contract", function () {
         );
         expect( await tokenContract.balanceOf(owner.address)).to.equal(initialOwnerBalance.add(totalCommission));
         expect( await tokenContract.balanceOf(bridgeContract.address)).to.equal(0);
+        expect( await bridgeContract.getCommissionPoolAmount(bridgeContract.address)).to.equal(0);
     });
 
     /////////////////////////////////////////////////////// NEGATIVE CASES ///////////////////////////////////////////////////////
@@ -179,8 +179,8 @@ describe("Multimint contract", function () {
         await tokenContract.transfer(user1.address, amountToTransfer);
         await bridgeInTokens(22);
         const [, amountToReturn] = await getAmountToReturnAndTotalCommission();  
-        await expect(bridgeContract.bridgeOut(tokenContract.address, user1.address, amountToReturn, bridgeOutTransactionId, 'anySourceChain', 'anySourceAddress'))
-            .to.be.revertedWith('AmountExceedBridgePool()');
+        await expect(bridgeContract.bridgeOut(tokenContract.address, user1.address, amountToReturn.add(1), bridgeOutTransactionId, 'anySourceChain', 'anySourceAddress'))
+            .to.be.revertedWith('AmountExceedBridgePool');
     });
 
     it("Owner can not withdraw more tokens than available in commission pool", async function () {
@@ -188,7 +188,7 @@ describe("Multimint contract", function () {
         await expect(bridgeContract.withdrawCommission(
             tokenContract.address,
             commissionInPool.add(1)
-        )).to.be.revertedWith('AmountExceedCommissionPool()');
+        )).to.be.revertedWith('AmountExceedCommissionPool');
     });
 
     it("arbitrary user con not set commission percent", async function () {
@@ -226,7 +226,7 @@ describe("Multimint contract", function () {
             deadline,
             incorrectNonce,
             signatureBridgeIn
-        )).to.be.revertedWith('AlreadyUsedSignature()');
+        )).to.be.revertedWith('AlreadyUsedSignature');
 
         const incorrectContract = tokenContract2.address;
         await expect(bridgeContract.connect(user1).bridgeIn(
@@ -238,7 +238,7 @@ describe("Multimint contract", function () {
             deadline,
             5,
             signatureBridgeIn
-        )).to.be.revertedWith('InvalidSignature()');
+        )).to.be.revertedWith('InvalidSignature');
 
         const incorrectSum = amountToTransfer.add(10000);
         await expect(bridgeContract.connect(user1).bridgeIn(
@@ -250,7 +250,7 @@ describe("Multimint contract", function () {
             deadline,
             5,
             signatureBridgeIn
-        )).to.be.revertedWith('InvalidSignature()');
+        )).to.be.revertedWith('InvalidSignature');
 
         const incorrectCommission = customCommission.sub(5);
         await expect(bridgeContract.connect(user1).bridgeIn(
@@ -262,7 +262,7 @@ describe("Multimint contract", function () {
             deadline,
             5,
             signatureBridgeIn
-        )).to.be.revertedWith('InvalidSignature()');
+        )).to.be.revertedWith('InvalidSignature');
 
         const incorrectNetwork = "Near";
         await expect(bridgeContract.connect(user1).bridgeIn(
@@ -274,7 +274,7 @@ describe("Multimint contract", function () {
             deadline,
             5,
             signatureBridgeIn
-        )).to.be.revertedWith('InvalidSignature()');
+        )).to.be.revertedWith('InvalidSignature');
 
         const incorrectDestinationAddress = "Near";
         await expect(bridgeContract.connect(user1).bridgeIn(
@@ -286,7 +286,7 @@ describe("Multimint contract", function () {
             deadline,
             5,
             signatureBridgeIn
-        )).to.be.revertedWith('InvalidSignature()');
+        )).to.be.revertedWith('InvalidSignature');
 
         const incorrectDeadline = deadline + 100;
         await expect(bridgeContract.connect(user1).bridgeIn(
@@ -298,7 +298,7 @@ describe("Multimint contract", function () {
             incorrectDeadline,
             5,
             signatureBridgeIn
-        )).to.be.revertedWith('InvalidSignature()');
+        )).to.be.revertedWith('InvalidSignature');
 
     });
 
@@ -321,7 +321,7 @@ describe("Multimint contract", function () {
             totalCommission,
             5,
             signatureTransferOut
-        )).to.be.revertedWith('InvalidSignature()');;
+        )).to.be.revertedWith('InvalidSignature');
 
         const incorrecRecipient = user2.address;
         await expect(bridgeContract.connect(user1).transferOut(
@@ -331,7 +331,7 @@ describe("Multimint contract", function () {
             totalCommission,
             5,
             signatureTransferOut
-        )).to.be.revertedWith('InvalidSignature()');;
+        )).to.be.revertedWith('InvalidSignature');
 
         const incorrectAmount = amountToTransfer.sub(totalCommission).add(2000);
         await expect(bridgeContract.connect(user1).transferOut(
@@ -341,7 +341,7 @@ describe("Multimint contract", function () {
             totalCommission,
             5,
             signatureTransferOut
-        )).to.be.revertedWith('InvalidSignature()');;
+        )).to.be.revertedWith('InvalidSignature');
 
         const incorrectCommission = totalCommission.sub(500);
         await expect(bridgeContract.connect(user1).transferOut(
@@ -351,7 +351,7 @@ describe("Multimint contract", function () {
             incorrectCommission,
             5,
             signatureTransferOut
-        )).to.be.revertedWith('InvalidSignature()');;
+        )).to.be.revertedWith('InvalidSignature');
 
         const incorrecNonce = 2;
         await expect(bridgeContract.connect(user1).transferOut(
@@ -361,7 +361,7 @@ describe("Multimint contract", function () {
             totalCommission,
             incorrecNonce,
             signatureTransferOut
-        )).to.be.revertedWith('AlreadyUsedSignature()');;
+        )).to.be.revertedWith('AlreadyUsedSignature');
     });
 
     it("should set commission percent", async function () {

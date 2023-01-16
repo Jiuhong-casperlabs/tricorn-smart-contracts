@@ -3,7 +3,6 @@
 pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "../Errors.sol";
 
 contract SignatureVerify {
     address private _signerAddress;
@@ -39,7 +38,7 @@ contract SignatureVerify {
                 signature
             )
         ) {
-            revert Errors.InvalidSignature();
+            revert("InvalidSignature");
         }
     }
 
@@ -58,7 +57,7 @@ contract SignatureVerify {
                 signature
             )
         ) {
-            revert Errors.InvalidSignature();
+            revert("InvalidSignature");
         }
     }
 
