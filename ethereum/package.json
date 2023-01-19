@@ -7,6 +7,7 @@
     "deploy:mumbai": "npx hardhat run ./scripts/deploy.ts --network mumbai",
     "deploy:goerli": "npx hardhat run ./scripts/deploy.ts --network goerli",
     "deploy:mainnet": "npx hardhat run ./scripts/deploy.ts --network ethereum",
+    "deploy:bsc": "npx hardhat run ./scripts/deploy.ts --network bsc",
     "lint": "solhint \"contracts/**/*.sol\"",
     "lint:prettier": "prettier --list-different 'contracts/**/*.sol'",
     "prettier": "prettier --write 'contracts/**/*.sol'",

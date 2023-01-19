@@ -49,6 +49,10 @@ export default {
       url: process.env.MUMBAI_URL,
       accounts: [process.env.DEPLOY_KEY],
       gas: 2100000,
+    },
+    bsc: {
+      url: process.env.BSC_URL,
+      accounts: [process.env.DEPLOY_KEY],
     }
   },
   dodoc: {
