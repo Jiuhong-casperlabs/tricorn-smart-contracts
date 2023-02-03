@@ -45,6 +45,11 @@ export default {
       url: process.env.MAIN_URL,
       accounts: [process.env.DEPLOY_KEY],
     },
+    avax: {
+      url: process.env.AVAX_URL,
+      accounts: [process.env.DEPLOY_KEY],
+      gas: 2100000,
+    },
     mumbai: {
       url: process.env.MUMBAI_URL,
       accounts: [process.env.DEPLOY_KEY],
