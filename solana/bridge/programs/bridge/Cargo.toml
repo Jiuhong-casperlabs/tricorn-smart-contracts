@@ -1,0 +1,28 @@
+[package]
+name = "bridge"
+version = "0.1.0"
+description = "Created with Anchor"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "bridge"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+anchor-lang = { version = "0.26.0", features = ["init-if-needed"] }
+anchor-spl = "0.26.0"
+getrandom = { version = "0.2.8", features = ["custom"] }
+borsh = { version = "0.9", features = ["const-generics"] }
+thiserror = "1.0.38"
+
+[dev-dependencies]
+base64 = "0.21.0"
+bs58 = "0.4.0"
+data-encoding-macro = "0.1.12"
