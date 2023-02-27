@@ -37,7 +37,7 @@ pub fn bridge_in_confirm(
     );
 }
 
-pub fn check_params(bridge_contract: ContractHash, bytes: Vec<u8>, signature: Bytes, nonce: U128) {
+pub fn check_params(bridge_contract: ContractHash, bytes: Vec<u8>, signature: [u8; 64], nonce: U128) {
     call_contract::<()>(
         bridge_contract,
         EP_CHECK_PARAMS,

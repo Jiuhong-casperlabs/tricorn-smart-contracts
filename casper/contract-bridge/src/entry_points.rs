@@ -1,6 +1,6 @@
 use alloc::{string::String, vec};
 use casper_types::{
-    bytesrepr::Bytes, CLType, CLTyped, ContractPackageHash, EntryPoint, EntryPointAccess,
+    CLType, CLTyped, ContractPackageHash, EntryPoint, EntryPointAccess,
     EntryPointType, Group, Key, Parameter, U128, U256,
 };
 
@@ -50,7 +50,7 @@ pub fn bridge_in() -> EntryPoint {
             Parameter::new(PARAM_NONCE, U128::cl_type()),
             Parameter::new(PARAM_DESTINATION_CHAIN, String::cl_type()),
             Parameter::new(PARAM_DESTINATION_ADDRESS, String::cl_type()),
-            Parameter::new(PARAM_SIGNATURE, Bytes::cl_type()),
+            Parameter::new(PARAM_SIGNATURE, CLType::ByteArray(64)),
         ],
         CLType::Unit,
         EntryPointAccess::Public,
@@ -72,7 +72,7 @@ pub fn bridge_in_confirm() -> EntryPoint {
             Parameter::new(PARAM_GAS_COMMISSION, U256::cl_type()),
             Parameter::new(PARAM_DEADLINE, U256::cl_type()),
             Parameter::new(PARAM_NONCE, U256::cl_type()),
-            Parameter::new(PARAM_SIGNATURE, Bytes::cl_type()),
+            Parameter::new(PARAM_SIGNATURE, CLType::ByteArray(64)),
         ],
         CLType::Unit,
         EntryPointAccess::Public,
@@ -86,7 +86,7 @@ pub fn check_params() -> EntryPoint {
         vec![
             Parameter::new(PARAM_BYTES, String::cl_type()),
             Parameter::new(PARAM_SIGNER, String::cl_type()),
-            Parameter::new(PARAM_SIGNATURE, String::cl_type()),
+            Parameter::new(PARAM_SIGNATURE, CLType::ByteArray(64)),
             Parameter::new(PARAM_NONCE, U128::cl_type()),
         ],
         CLType::Unit,
@@ -122,7 +122,7 @@ pub fn transfer_out() -> EntryPoint {
             Parameter::new(PARAM_COMMISSION, U256::cl_type()),
             Parameter::new(PARAM_NONCE, U128::cl_type()),
             Parameter::new(PARAM_RECIPIENT, Key::cl_type()),
-            Parameter::new(PARAM_SIGNATURE, Bytes::cl_type()),
+            Parameter::new(PARAM_SIGNATURE, CLType::ByteArray(64)),
         ],
         CLType::Unit,
         EntryPointAccess::Public,
@@ -139,7 +139,7 @@ pub fn withdraw_commission() -> EntryPoint {
             Parameter::new(PARAM_RECIPIENT, Key::cl_type()),
             Parameter::new(PARAM_COMMISSION, U256::cl_type()),
             Parameter::new(PARAM_NONCE, U256::cl_type()),
-            Parameter::new(PARAM_SIGNATURE, Bytes::cl_type()),
+            Parameter::new(PARAM_SIGNATURE, CLType::ByteArray(64)),
         ],
         CLType::Unit,
         operator_access(),

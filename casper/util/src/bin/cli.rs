@@ -6,7 +6,7 @@ use std::io::Write;
 use anyhow::{anyhow, Context};
 use casper_execution_engine::core::engine_state::ExecutableDeployItem;
 use casper_node::{crypto::AsymmetricKeyExt, rpcs::state::GlobalStateIdentifier};
-use casper_types::U128;
+use casper_types::{U128, CLValue};
 use casper_types::{
     account::AccountHash,
     bytesrepr::{Bytes, FromBytes},
@@ -365,12 +365,15 @@ async fn deploy_bridge_contract(env: &CommonEnv, session_code_path: String) -> a
     let session_code = tokio::fs::read(session_code_path)
         .await
         .context("couldn't read session code file")?;
+    let mut args = RuntimeArgs::new();
 
+    args.insert_cl_value("signer", CLValue::from_t("").expect("infallible"));
+    
     let deploy = client.make_simple_deploy(
-        U512::one() * 50_000_000_000u64,
+        U512::one() * 200_000_000_000u64,
         ExecutableDeployItem::ModuleBytes {
             module_bytes: Bytes::from(session_code),
-            args: RuntimeArgs::new(),
+            args: args,
         },
     )?;
 

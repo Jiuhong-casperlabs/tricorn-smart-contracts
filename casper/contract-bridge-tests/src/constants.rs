@@ -22,7 +22,17 @@ pub(crate) fn TEST_CORRECT_DEADLINE() -> U256 {
 pub(crate) fn TEST_EXPIRED_DEADLINE() -> U256 {
     U256::one() * 1672051121
 }
+pub(crate) fn TEST_DESTINATION_CHAIN() -> String {
+    "DEST".to_string()
+}
+pub(crate) fn TEST_DESTINATION_ADDRESS() -> String {
+    "DESTADDR".to_string()
+}
+
 pub(crate) const TEST_ACCOUNT_BALANCE: u64 = 10_000_000_000_000u64;
 
 pub(crate) const ERC20_INSUFFIENT_BALANCE_ERROR_CODE: u16 = u16::MAX - 1;
 pub(crate) const TEST_ACCOUNT: [u8; 32] = [255u8; 32];
+
+pub(crate) const TEST_PREFIX_BRIDGE_IN: &str = "TRICORN_BRIDGE_IN";
+pub(crate) const TEST_PREFIX_TRANSFER_OUT: &str = "TRICORN_TRANSFER_OUT";

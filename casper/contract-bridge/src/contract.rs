@@ -14,7 +14,7 @@ use casper_types::{
 use contract_util::{
     caller_context, current_contract, erc20,
     event::fire,
-    signatures::{check_public_key, sign_msg_bridge_in, sign_msg_transfer_out},
+    signatures::{check_public_key, cook_msg_bridge_in, cook_msg_transfer_out},
 };
 
 use crate::{
@@ -46,7 +46,10 @@ pub fn install(signer: String) {
     let commissions_by_tokens_uref =
         storage::new_dictionary(COMMISSIONS_BY_TOKEN_KEY_NAME).unwrap_or_revert();
 
-    let commissions_by_tokens_dictionary_key = { Key::from(commissions_by_tokens_uref) };
+    let commissions_by_tokens_dictionary_key = { 
+        runtime::remove_key(COMMISSIONS_BY_TOKEN_KEY_NAME);
+        Key::from(commissions_by_tokens_uref) 
+    };
     named_keys.insert(
         String::from(COMMISSIONS_BY_TOKEN_KEY_NAME),
         commissions_by_tokens_dictionary_key,
@@ -99,7 +102,7 @@ fn verify_caller_is_self() {
     }
 }
 
-fn verify_signature(bytes: Bytes, signature: Bytes) {
+fn verify_signature(bytes: Bytes, signature: [u8; 64]) {
     let signer: String = uref::read(PARAM_SIGNER);
 
     if signer.is_empty() {
@@ -181,18 +184,29 @@ pub fn bridge_in(
     nonce: U128,
     destination_chain: String,
     destination_address: String,
-    signature: Bytes,
+    signature: [u8; 64],
 ) {
     verify_deadline(deadline);
 
     let (self_contract_package, self_contract_hash) = current_contract();
     let (from_key, signer) = from_keys();
-    let bytes = sign_msg_bridge_in(token_contract, signer, amount, deadline, nonce);
+    let bytes = cook_msg_bridge_in(
+        *self_contract_hash,
+        token_contract,
+        signer,
+        amount,
+        gas_commission,
+        deadline,
+        nonce,
+        &destination_chain,
+        &destination_address,
+    );
 
     interface::onchain::check_params(*self_contract_hash, bytes, signature, nonce);
 
     let self_contract_key: Key = (*self_contract_package).into();
     let balance_before = erc20::balance_of(token_contract, self_contract_key);
+    // vvvq, how casper understand from where we transfer it?
     erc20::transfer(token_contract, self_contract_key, amount);
     let balance_after = erc20::balance_of(token_contract, self_contract_key);
 
@@ -224,6 +238,9 @@ pub fn bridge_in_confirm(
     verify_caller_is_self();
 
     let total_commission = get_total_commission(amount, gas_commission);
+    if total_commission > amount {
+        revert(BridgeError::CommissionBiggerThanTransferredAmount)
+    }
 
     commissions::increase(token_contract, total_commission);
 
@@ -241,7 +258,7 @@ pub fn bridge_in_confirm(
     fire(event);
 }
 
-pub fn check_params(bytes: Bytes, signature: Bytes, nonce: U128) {
+pub fn check_params(bytes: Bytes, signature: [u8; 64], nonce: U128) {
     verify_caller_is_self();
 
     verify_nonce(nonce);
@@ -297,13 +314,20 @@ pub fn transfer_out(
     commission: U256,
     nonce: U128,
     recipient: Key,
-    signature: Bytes,
+    signature: [u8; 64],
 ) {
     let (_, self_contract_hash) = current_contract();
 
     let (_, signer) = from_keys();
 
-    let bytes = sign_msg_transfer_out(token_contract, signer, recipient, amount, commission, nonce);
+    let bytes = cook_msg_transfer_out(
+        *self_contract_hash,
+        token_contract,
+        recipient,
+        amount,
+        commission,
+        nonce,
+    );
     interface::onchain::check_params(*self_contract_hash, bytes, signature, nonce);
 
     used_nonces::use_nonce(nonce);

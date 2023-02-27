@@ -27,7 +27,7 @@ pub extern "C" fn bridge_in() {
     let destination_chain: String = runtime::get_named_arg(PARAM_DESTINATION_CHAIN);
     let destination_address: String = runtime::get_named_arg(PARAM_DESTINATION_ADDRESS);
 
-    let signature: Bytes = runtime::get_named_arg(PARAM_SIGNATURE);
+    let signature: [u8; 64] = runtime::get_named_arg(PARAM_SIGNATURE);
 
     contract_bridge::contract::bridge_in(
         token_contract,
@@ -65,7 +65,7 @@ pub extern "C" fn bridge_in_confirm() {
 #[no_mangle]
 pub extern "C" fn check_params() {
     let bytes: Bytes = runtime::get_named_arg(PARAM_BYTES);
-    let signature: Bytes = runtime::get_named_arg(PARAM_SIGNATURE);
+    let signature: [u8; 64] = runtime::get_named_arg(PARAM_SIGNATURE);
     let nonce: U128 = runtime::get_named_arg(PARAM_NONCE);
     contract_bridge::contract::check_params(bytes, signature, nonce);
 }
@@ -102,7 +102,7 @@ pub extern "C" fn transfer_out() {
     let commission: U256 = runtime::get_named_arg(PARAM_COMMISSION);
     let nonce: U128 = runtime::get_named_arg(PARAM_NONCE);
     let recipient: Key = runtime::get_named_arg(PARAM_RECIPIENT);
-    let signature: Bytes = runtime::get_named_arg(PARAM_SIGNATURE);
+    let signature: [u8; 64] = runtime::get_named_arg(PARAM_SIGNATURE);
 
     contract_bridge::contract::transfer_out(
         token_contract,

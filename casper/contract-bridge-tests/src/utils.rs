@@ -8,7 +8,7 @@ use casper_engine_test_support::{
     DEFAULT_ACCOUNT_INITIAL_BALANCE, DEFAULT_GENESIS_CONFIG, DEFAULT_GENESIS_CONFIG_HASH,
     DEFAULT_PAYMENT,
 };
-use contract_util::signatures::{get_signature_bytes, sign_msg_bridge_in, sign_msg_transfer_out};
+use contract_util::signatures::{cook_msg_bridge_in, cook_msg_transfer_out, get_signature_bytes};
 
 use casper_execution_engine::{
     core::{
@@ -44,8 +44,8 @@ const CONTRACT_BRIDGE_BYTES: &[u8] = include_bytes!("contract_bridge.wasm");
 static DEPLOY_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
 use crate::constants::{
-    TEST_ACCOUNT, TEST_ACCOUNT_BALANCE, TEST_AMOUNT, TEST_BLOCK_TIME, TEST_GAS_COMMISSION,
-    TEST_STABLE_COMMISSION_PERCENT,
+    TEST_ACCOUNT, TEST_ACCOUNT_BALANCE, TEST_AMOUNT, TEST_BLOCK_TIME, TEST_DESTINATION_ADDRESS,
+    TEST_DESTINATION_CHAIN, TEST_GAS_COMMISSION, TEST_STABLE_COMMISSION_PERCENT,
 };
 
 pub fn test_public_key() -> &'static str {
@@ -445,13 +445,36 @@ pub fn bridge_in(
     amount: U256,
     deadline: U256,
     nonce: U128,
+    gas_commission: U256,
     mut signature_bytes: Vec<u8>,
 ) -> DeployItem {
+
     if signature_bytes.is_empty() {
-        signature_bytes =
-            sign_msg_bridge_in(token_package_hash, account_address, amount, deadline, nonce);
+        signature_bytes = cook_msg_bridge_in(
+            bridge_hash,
+            token_package_hash,
+            account_address,
+            amount,
+            gas_commission,
+            deadline,
+            nonce,
+            &TEST_DESTINATION_CHAIN(),
+            &TEST_DESTINATION_ADDRESS(),
+        );
     }
     let signature_bytes = get_signature_bytes(&signature_bytes, test_signer_secret_key());
+
+    // println!("bridge_hash {bridge_hash}");
+    // println!("token_package_hash {token_package_hash}");
+    // println!("account_address {account_address}");
+    // println!("PARAM_TOKEN_CONTRACT {token_package_hash}"); // +
+    // println!("PARAM_AMOUNT {}", U256::one() * 1_000_000_000_000u64); // +
+    // println!("PARAM_GAS_COMMISSION {}", gas_commission); // +
+    // println!("PARAM_DEADLINE {deadline}"); // +
+    // println!("PARAM_NONCE {nonce}"); // +
+    // println!("PARAM_DESTINATION_CHAIN {}", TEST_DESTINATION_CHAIN()); // +
+    // println!("PARAM_DESTINATION_ADDRESS {}", TEST_DESTINATION_ADDRESS()); // +
+    // println!("PARAM_SIGNATURE1111 {:?}", signature_bytes.clone());
 
     simple_deploy_builder(account_address)
         .with_stored_session_hash(
@@ -460,12 +483,12 @@ pub fn bridge_in(
             runtime_args! {
                 PARAM_TOKEN_CONTRACT => token_package_hash,
                 PARAM_AMOUNT => amount,
-                PARAM_GAS_COMMISSION => TEST_GAS_COMMISSION(),
+                PARAM_GAS_COMMISSION => gas_commission,
                 PARAM_DEADLINE => deadline,
                 PARAM_NONCE => nonce,
-                PARAM_DESTINATION_CHAIN => "DEST".to_string(),
-                PARAM_DESTINATION_ADDRESS => "DESTADDR".to_string(),
-                PARAM_SIGNATURE => Bytes::from(signature_bytes),
+                PARAM_DESTINATION_CHAIN => TEST_DESTINATION_CHAIN(),
+                PARAM_DESTINATION_ADDRESS => TEST_DESTINATION_ADDRESS(),
+                PARAM_SIGNATURE => signature_bytes,
             },
         )
         .build()
@@ -482,9 +505,9 @@ pub fn transfer_out(
     mut signature_bytes: Vec<u8>,
 ) -> DeployItem {
     if signature_bytes.is_empty() {
-        signature_bytes = sign_msg_transfer_out(
+        signature_bytes = cook_msg_transfer_out(
+            bridge_hash,
             token_package_hash,
-            account_address,
             recipient,
             amount_to_transfer,
             commission,
@@ -503,7 +526,7 @@ pub fn transfer_out(
                 PARAM_COMMISSION => commission,
                 PARAM_NONCE => nonce,
                 PARAM_RECIPIENT => recipient,
-                PARAM_SIGNATURE => Bytes::from(signature_bytes),
+                PARAM_SIGNATURE => signature_bytes,
             },
         )
         .build()

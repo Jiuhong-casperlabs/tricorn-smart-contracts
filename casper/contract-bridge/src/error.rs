@@ -33,6 +33,9 @@ pub enum BridgeError {
     #[cfg_attr(std, error("Signer is not established"))]
     SignerIsNotEstablished = 8,
 
+    #[cfg_attr(std, error("Total commission bigger than transferred amount"))]
+    CommissionBiggerThanTransferredAmount = 9,
+
     #[cfg_attr(std, error("Integer Underflow"))]
     Underflow = 253,
 
