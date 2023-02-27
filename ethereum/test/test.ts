@@ -22,36 +22,37 @@ describe("Multimint contract", function () {
     let systemWallet = new Wallet("ecff8b9c717a56b30f35a75db85342a1b42fcfe8540a733c73cc9ef38a165a56")
     const initialSupply = ethers.utils.parseEther("10000");
     const amountToTransfer = ethers.utils.parseEther("1000");
-    const customCommission = ethers.utils.parseEther("100");
+    const testGasCommission = ethers.utils.parseEther("100");
+    const testGasIncorrectCommission = ethers.utils.parseEther("1000");
     const stableCommissionPercent = 400;
 
     const destinationChain = "Solana";
     const destinationAddress = "4zXwdbUDWo1S5AP2CEfv4zAPRds5PQUG1dyqLLvib2xu";
     const bridgeOutTransactionId = 1011;
-    const TYPES_FOR_SIGNATURE_BRIDGE_IN = ["address", "address", "uint256", "uint256", "string", "string", "uint256", "uint256"];
-    const TYPES_FOR_SIGNATURE_TRANSFER_OUT = ["address", "address", "uint256", "uint256", "uint256"];
+    const TYPES_FOR_SIGNATURE_BRIDGE_IN = ["address", "address", "address", "uint256", "uint256", "string", "string", "uint256", "uint256"];
+    const TYPES_FOR_SIGNATURE_TRANSFER_OUT = ["address", "address", "address", "uint256", "uint256", "uint256"];
 
     const getAmountToReturnAndTotalCommission = async () => {
-        const totalCommission = await bridgeContract.getTotalCommission(amountToTransfer, customCommission);    
+        const totalCommission = await bridgeContract.getTotalCommission(amountToTransfer, testGasCommission);    
         const amountToReturn = amountToTransfer.sub(totalCommission);
         return [totalCommission, amountToReturn]
     };
 
-    const bridgeInTokens = async (nonce: number) => {
+    const bridgeInTokens = async (nonce: number, gasCommission = testGasCommission) => {
         
         await tokenContract.connect(user1).approve(bridgeContract.address, amountToTransfer);
 
         const deadline = await getCurrentTimeFromNetwork() + 84_000;
         const signatureBridgeIn = signMessage(
             TYPES_FOR_SIGNATURE_BRIDGE_IN,
-            [user1.address, tokenContract.address, amountToTransfer, customCommission, destinationChain, destinationAddress, deadline, nonce], 
+            [user1.address, bridgeContract.address, tokenContract.address, amountToTransfer, gasCommission, destinationChain, destinationAddress, deadline, nonce], 
             systemWallet
         );
 
         return bridgeContract.connect(user1).bridgeIn(
             tokenContract.address,
             amountToTransfer, 
-            customCommission,
+            gasCommission,
             destinationChain,
             destinationAddress,
             deadline,
@@ -85,7 +86,7 @@ describe("Multimint contract", function () {
                 tokenContract.address, 
                 amountToTransfer, 
                 stableCommissionPercent,
-                customCommission,
+                testGasCommission,
                 destinationChain, 
                 destinationAddress
             );
@@ -100,7 +101,7 @@ describe("Multimint contract", function () {
 
         const signatureTransferOut = signMessage(
             TYPES_FOR_SIGNATURE_TRANSFER_OUT,
-            [tokenContract.address, user1.address, amountToReturn, totalCommission, nonce], 
+            [bridgeContract.address, tokenContract.address, user1.address, amountToReturn, totalCommission, nonce], 
             systemWallet
         );
         await expect(bridgeContract.connect(user1).transferOut(
@@ -124,7 +125,7 @@ describe("Multimint contract", function () {
                 tokenContract.address, 
                 amountToTransfer, 
                 stableCommissionPercent,
-                customCommission,
+                testGasCommission,
                 destinationChain, 
                 destinationAddress
             );
@@ -151,8 +152,8 @@ describe("Multimint contract", function () {
     });
 
     it("should correctly calculate total commission", async function () {
-        expect(await bridgeContract.getTotalCommission(amountToTransfer, customCommission))
-        .to.equal(amountToTransfer.mul(stableCommissionPercent).div(10000).add(customCommission));
+        expect(await bridgeContract.getTotalCommission(amountToTransfer, testGasCommission))
+        .to.equal(amountToTransfer.mul(stableCommissionPercent).div(10000).add(testGasCommission));
 
         const [totalCommission, ] = await getAmountToReturnAndTotalCommission();
     });
@@ -174,6 +175,12 @@ describe("Multimint contract", function () {
     });
 
     /////////////////////////////////////////////////////// NEGATIVE CASES ///////////////////////////////////////////////////////
+
+
+    it("should not allow transaction if total commission greater than transferred amount", async function () {
+        await expect(bridgeInTokens(1, testGasIncorrectCommission))
+            .to.be.revertedWith('CommissionGreaterThanAmount');;
+    });
 
     it("Owner can not bridge out more tokens than available in pool", async function () {
         await tokenContract.transfer(user1.address, amountToTransfer);
@@ -212,7 +219,7 @@ describe("Multimint contract", function () {
         const deadline = await getCurrentTimeFromNetwork() + 1000;
         const signatureBridgeIn = signMessage(
             TYPES_FOR_SIGNATURE_BRIDGE_IN,
-            [user1.address, tokenContract.address, amountToTransfer, customCommission, destinationChain, destinationAddress, deadline, 5], 
+            [user1.address, bridgeContract.address, tokenContract.address, amountToTransfer, testGasCommission, destinationChain, destinationAddress, deadline, 5], 
             systemWallet
         );
 
@@ -220,7 +227,7 @@ describe("Multimint contract", function () {
         await expect(bridgeContract.connect(user1).bridgeIn(
             tokenContract.address,
             amountToTransfer, 
-            customCommission,
+            testGasCommission,
             destinationChain,
             destinationAddress,
             deadline,
@@ -232,7 +239,7 @@ describe("Multimint contract", function () {
         await expect(bridgeContract.connect(user1).bridgeIn(
             incorrectContract,
             amountToTransfer, 
-            customCommission,
+            testGasCommission,
             destinationChain,
             destinationAddress,
             deadline,
@@ -244,7 +251,7 @@ describe("Multimint contract", function () {
         await expect(bridgeContract.connect(user1).bridgeIn(
             tokenContract.address,
             incorrectSum, 
-            customCommission,
+            testGasCommission,
             destinationChain,
             destinationAddress,
             deadline,
@@ -252,7 +259,7 @@ describe("Multimint contract", function () {
             signatureBridgeIn
         )).to.be.revertedWith('InvalidSignature');
 
-        const incorrectCommission = customCommission.sub(5);
+        const incorrectCommission = testGasCommission.sub(5);
         await expect(bridgeContract.connect(user1).bridgeIn(
             tokenContract.address,
             amountToTransfer, 
@@ -268,7 +275,7 @@ describe("Multimint contract", function () {
         await expect(bridgeContract.connect(user1).bridgeIn(
             tokenContract.address,
             amountToTransfer, 
-            customCommission,
+            testGasCommission,
             incorrectNetwork,
             destinationAddress,
             deadline,
@@ -280,7 +287,7 @@ describe("Multimint contract", function () {
         await expect(bridgeContract.connect(user1).bridgeIn(
             tokenContract.address,
             amountToTransfer, 
-            customCommission,
+            testGasCommission,
             destinationChain,
             incorrectDestinationAddress,
             deadline,
@@ -292,7 +299,7 @@ describe("Multimint contract", function () {
         await expect(bridgeContract.connect(user1).bridgeIn(
             tokenContract.address,
             amountToTransfer, 
-            customCommission,
+            testGasCommission,
             destinationChain,
             destinationAddress,
             incorrectDeadline,
@@ -300,6 +307,25 @@ describe("Multimint contract", function () {
             signatureBridgeIn
         )).to.be.revertedWith('InvalidSignature');
 
+
+        // bridgeContract will be invalid in this context
+        const realContract = '0x47761b7E9E203aF9853107FbC6d8D0353Cda7a0e'; 
+        const InvalidSignatureBridgeIn = signMessage(
+            TYPES_FOR_SIGNATURE_BRIDGE_IN,
+            [user1.address, realContract, tokenContract.address, amountToTransfer, testGasCommission, destinationChain, destinationAddress, deadline, 5], 
+            systemWallet
+        );
+
+        await expect(bridgeContract.connect(user1).bridgeIn(
+            tokenContract.address,
+            amountToTransfer, 
+            testGasCommission,
+            destinationChain,
+            destinationAddress,
+            deadline,
+            5,
+            InvalidSignatureBridgeIn
+        )).to.be.revertedWith('InvalidSignature');
     });
 
 
@@ -309,7 +335,7 @@ describe("Multimint contract", function () {
 
         const signatureTransferOut = signMessage(
             TYPES_FOR_SIGNATURE_TRANSFER_OUT,
-            [tokenContract.address, user1.address, amountToReturn, totalCommission, 5], 
+            [bridgeContract.address, tokenContract.address, user1.address, amountToReturn, totalCommission, 5], 
             systemWallet
         );
 
@@ -357,11 +383,29 @@ describe("Multimint contract", function () {
         await expect(bridgeContract.connect(user1).transferOut(
             tokenContract.address,
             user1.address,
-            amountToTransfer.sub(totalCommission).add(2000), 
+            amountToTransfer.sub(totalCommission), 
             totalCommission,
             incorrecNonce,
             signatureTransferOut
         )).to.be.revertedWith('AlreadyUsedSignature');
+
+        // Bridge contract will be invalid
+        const realContractAddress = '0x47761b7E9E203aF9853107FbC6d8D0353Cda7a0e';    
+        const invalidSignatureTransferOut = signMessage(
+            TYPES_FOR_SIGNATURE_TRANSFER_OUT,
+            [realContractAddress, tokenContract.address, user1.address, amountToReturn, totalCommission, 5], 
+            systemWallet
+        );
+
+        await expect(bridgeContract.connect(user1).transferOut(
+            tokenContract.address,
+            user1.address,
+            amountToTransfer.sub(totalCommission), 
+            totalCommission,
+            5,
+            invalidSignatureTransferOut
+        )).to.be.revertedWith('InvalidSignature');
+
     });
 
     it("should set commission percent", async function () {

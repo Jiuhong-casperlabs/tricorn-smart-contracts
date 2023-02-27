@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "./signature/SignatureVerify.sol";
+import "./Errors.sol";
 
 contract Bridge is SignatureVerify, Ownable, Pausable {
     using SafeERC20 for IERC20;
@@ -90,17 +91,23 @@ contract Bridge is SignatureVerify, Ownable, Pausable {
         uint256 nonce,
         bytes calldata signature
     ) external whenNotPaused {
+        uint256 totalCommission = getTotalCommission(amount, gasCommission);
+
+        if (totalCommission >= amount) {
+            revert(Errors.COMMISSION_GREATER_THAN_AMOUNT);
+        }
 
         if (_usedNonces[nonce]) {
-            revert("AlreadyUsedSignature");
+            revert(Errors.ALREADY_USED_SIGNATURE);
         }
 
         if (block.timestamp > deadline) {
-            revert("ExpiredSignature");
+            revert(Errors.EXPIRED_SIGNATURE);
         }
 
         _checkBridgeInRequest(
             _msgSender(),
+            address(this),
             token,
             amount,
             gasCommission,
@@ -113,7 +120,6 @@ contract Bridge is SignatureVerify, Ownable, Pausable {
 
         _usedNonces[nonce] = true;
 
-        uint256 totalCommission = getTotalCommission(amount, gasCommission);
        _commissionPools[token] += totalCommission;
 
 
@@ -149,7 +155,7 @@ contract Bridge is SignatureVerify, Ownable, Pausable {
         uint256 balance = IERC20(token).balanceOf(address(this));
         uint256 allowedBalance = balance - _commissionPools[token];
         if (amount > allowedBalance) {
-            revert("AmountExceedBridgePool");
+            revert(Errors.AMOUNT_EXCEED_BRIDGE_POOL);
         }
         IERC20(token).safeTransfer(recipient, amount);
         emit BridgeFundsOut(
@@ -171,7 +177,7 @@ contract Bridge is SignatureVerify, Ownable, Pausable {
         uint256 amount
     ) external onlyOwner {
         if (_commissionPools[token] < amount) {
-            revert("AmountExceedCommissionPool");
+            revert(Errors.AMOUNT_EXCEED_COMMISSION_POOL);
         }
         _commissionPools[token] -= amount;
         IERC20(token).safeTransfer(msg.sender, amount);
@@ -194,10 +200,17 @@ contract Bridge is SignatureVerify, Ownable, Pausable {
         bytes calldata signature
     ) external whenNotPaused {
         if (_usedNonces[nonce]) {
-            revert("AlreadyUsedSignature");
+            revert(Errors.ALREADY_USED_SIGNATURE);
         }
 
-        _checkTransferOutRequest(token, recipient, amount, commission, nonce, signature);
+        _checkTransferOutRequest(
+            address(this), token,
+            recipient,
+            amount,
+            commission,
+            nonce,
+            signature
+        );
 
         _usedNonces[nonce] = true;
         _commissionPools[token] -= commission;
