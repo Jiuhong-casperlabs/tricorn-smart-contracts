@@ -107,7 +107,6 @@ contract Bridge is SignatureVerify, Ownable, Pausable {
 
         _checkBridgeInRequest(
             _msgSender(),
-            address(this),
             token,
             amount,
             gasCommission,
@@ -204,7 +203,7 @@ contract Bridge is SignatureVerify, Ownable, Pausable {
         }
 
         _checkTransferOutRequest(
-            address(this), token,
+            token,
             recipient,
             amount,
             commission,

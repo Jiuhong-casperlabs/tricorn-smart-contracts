@@ -508,6 +508,7 @@ pub fn transfer_out(
         signature_bytes = cook_msg_transfer_out(
             bridge_hash,
             token_package_hash,
+            account_address,
             recipient,
             amount_to_transfer,
             commission,

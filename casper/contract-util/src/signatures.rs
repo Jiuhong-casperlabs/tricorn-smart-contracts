@@ -52,6 +52,7 @@ pub fn cook_msg_bridge_in(
 pub fn cook_msg_transfer_out(
     bridge_hash: ContractHash,
     token_package_hash: ContractPackageHash,
+    account_address: AccountHash,
     recipient: Key,
     amount_to_transfer: U256,
     commission: U256,
@@ -67,6 +68,7 @@ pub fn cook_msg_transfer_out(
     bytes.extend_from_slice(prefix.as_bytes());
     bytes.extend_from_slice(bridge_hash.as_bytes());
     bytes.extend_from_slice(token_package_hash.as_bytes());
+    bytes.extend_from_slice(account_address.as_bytes());
     bytes.extend_from_slice(&recipient);
     bytes.extend_from_slice(&amount);
     bytes.extend_from_slice(&commission);

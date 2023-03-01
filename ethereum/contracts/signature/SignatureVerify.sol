@@ -13,7 +13,6 @@ contract SignatureVerify {
 
     function _checkBridgeInRequest(
         address senderAddress,
-        address contractAddress,
         address token,
         uint256 amount,
         uint256 gasCommission,
@@ -28,7 +27,6 @@ contract SignatureVerify {
                 _signerAddress,
                 _hashBridgeIn(
                     senderAddress, 
-                    contractAddress,
                     token,
                     amount, 
                     gasCommission, 
@@ -45,7 +43,6 @@ contract SignatureVerify {
     }
 
     function _checkTransferOutRequest(
-        address contractAddress,
         address token,
         address recipient,
         uint256 amount,
@@ -56,7 +53,7 @@ contract SignatureVerify {
         if (
             !_verify(
                 _signerAddress,
-                _hashTransferOut(contractAddress, token, recipient, amount, commission, nonce),
+                _hashTransferOut(token, recipient, amount, commission, nonce),
                 signature
             )
         ) {
@@ -74,7 +71,6 @@ contract SignatureVerify {
 
     function _hashBridgeIn(
         address senderAddress,
-        address contractAddress,
         address token,
         uint256 amount,
         uint256 gasCommission,
@@ -88,7 +84,6 @@ contract SignatureVerify {
                 keccak256(
                     abi.encodePacked(
                         senderAddress, 
-                        contractAddress,
                         token,
                         amount, 
                         gasCommission, 
@@ -102,7 +97,6 @@ contract SignatureVerify {
     }
 
     function _hashTransferOut(
-        address contractAddress,
         address token,
         address recipient,
         uint256 amount,
@@ -111,7 +105,7 @@ contract SignatureVerify {
     ) private pure returns (bytes32) {
         return
             ECDSA.toEthSignedMessageHash(
-                keccak256(abi.encodePacked(contractAddress, token, recipient, amount, commission, nonce))
+                keccak256(abi.encodePacked(token, recipient, amount, commission, nonce))
             );
     }
 }

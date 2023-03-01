@@ -29,8 +29,8 @@ describe("Multimint contract", function () {
     const destinationChain = "Solana";
     const destinationAddress = "4zXwdbUDWo1S5AP2CEfv4zAPRds5PQUG1dyqLLvib2xu";
     const bridgeOutTransactionId = 1011;
-    const TYPES_FOR_SIGNATURE_BRIDGE_IN = ["address", "address", "address", "uint256", "uint256", "string", "string", "uint256", "uint256"];
-    const TYPES_FOR_SIGNATURE_TRANSFER_OUT = ["address", "address", "address", "uint256", "uint256", "uint256"];
+    const TYPES_FOR_SIGNATURE_BRIDGE_IN = ["address", "address", "uint256", "uint256", "string", "string", "uint256", "uint256"];
+    const TYPES_FOR_SIGNATURE_TRANSFER_OUT = ["address", "address", "uint256", "uint256", "uint256"];
 
     const getAmountToReturnAndTotalCommission = async () => {
         const totalCommission = await bridgeContract.getTotalCommission(amountToTransfer, testGasCommission);    
@@ -45,7 +45,7 @@ describe("Multimint contract", function () {
         const deadline = await getCurrentTimeFromNetwork() + 84_000;
         const signatureBridgeIn = signMessage(
             TYPES_FOR_SIGNATURE_BRIDGE_IN,
-            [user1.address, bridgeContract.address, tokenContract.address, amountToTransfer, gasCommission, destinationChain, destinationAddress, deadline, nonce], 
+            [user1.address, tokenContract.address, amountToTransfer, gasCommission, destinationChain, destinationAddress, deadline, nonce], 
             systemWallet
         );
 
@@ -101,7 +101,7 @@ describe("Multimint contract", function () {
 
         const signatureTransferOut = signMessage(
             TYPES_FOR_SIGNATURE_TRANSFER_OUT,
-            [bridgeContract.address, tokenContract.address, user1.address, amountToReturn, totalCommission, nonce], 
+            [tokenContract.address, user1.address, amountToReturn, totalCommission, nonce], 
             systemWallet
         );
         await expect(bridgeContract.connect(user1).transferOut(
@@ -219,7 +219,7 @@ describe("Multimint contract", function () {
         const deadline = await getCurrentTimeFromNetwork() + 1000;
         const signatureBridgeIn = signMessage(
             TYPES_FOR_SIGNATURE_BRIDGE_IN,
-            [user1.address, bridgeContract.address, tokenContract.address, amountToTransfer, testGasCommission, destinationChain, destinationAddress, deadline, 5], 
+            [user1.address, tokenContract.address, amountToTransfer, testGasCommission, destinationChain, destinationAddress, deadline, 5], 
             systemWallet
         );
 
@@ -309,23 +309,23 @@ describe("Multimint contract", function () {
 
 
         // bridgeContract will be invalid in this context
-        const realContract = '0x47761b7E9E203aF9853107FbC6d8D0353Cda7a0e'; 
-        const InvalidSignatureBridgeIn = signMessage(
-            TYPES_FOR_SIGNATURE_BRIDGE_IN,
-            [user1.address, realContract, tokenContract.address, amountToTransfer, testGasCommission, destinationChain, destinationAddress, deadline, 5], 
-            systemWallet
-        );
+        // const realContract = '0x47761b7E9E203aF9853107FbC6d8D0353Cda7a0e'; 
+        // const InvalidSignatureBridgeIn = signMessage(
+        //     TYPES_FOR_SIGNATURE_BRIDGE_IN,
+        //     [user1.address, tokenContract.address, amountToTransfer, testGasCommission, destinationChain, destinationAddress, deadline, 5], 
+        //     systemWallet
+        // );
 
-        await expect(bridgeContract.connect(user1).bridgeIn(
-            tokenContract.address,
-            amountToTransfer, 
-            testGasCommission,
-            destinationChain,
-            destinationAddress,
-            deadline,
-            5,
-            InvalidSignatureBridgeIn
-        )).to.be.revertedWith('InvalidSignature');
+        // await expect(bridgeContract.connect(user1).bridgeIn(
+        //     tokenContract.address,
+        //     amountToTransfer, 
+        //     testGasCommission,
+        //     destinationChain,
+        //     destinationAddress,
+        //     deadline,
+        //     5,
+        //     InvalidSignatureBridgeIn
+        // )).to.be.revertedWith('InvalidSignature');
     });
 
 
@@ -335,7 +335,7 @@ describe("Multimint contract", function () {
 
         const signatureTransferOut = signMessage(
             TYPES_FOR_SIGNATURE_TRANSFER_OUT,
-            [bridgeContract.address, tokenContract.address, user1.address, amountToReturn, totalCommission, 5], 
+            [tokenContract.address, user1.address, amountToReturn, totalCommission, 5], 
             systemWallet
         );
 
@@ -390,21 +390,21 @@ describe("Multimint contract", function () {
         )).to.be.revertedWith('AlreadyUsedSignature');
 
         // Bridge contract will be invalid
-        const realContractAddress = '0x47761b7E9E203aF9853107FbC6d8D0353Cda7a0e';    
-        const invalidSignatureTransferOut = signMessage(
-            TYPES_FOR_SIGNATURE_TRANSFER_OUT,
-            [realContractAddress, tokenContract.address, user1.address, amountToReturn, totalCommission, 5], 
-            systemWallet
-        );
+        // const realContractAddress = '0x47761b7E9E203aF9853107FbC6d8D0353Cda7a0e';    
+        // const invalidSignatureTransferOut = signMessage(
+        //     TYPES_FOR_SIGNATURE_TRANSFER_OUT,
+        //     [realContractAddress, tokenContract.address, user1.address, amountToReturn, totalCommission, 5], 
+        //     systemWallet
+        // );
 
-        await expect(bridgeContract.connect(user1).transferOut(
-            tokenContract.address,
-            user1.address,
-            amountToTransfer.sub(totalCommission), 
-            totalCommission,
-            5,
-            invalidSignatureTransferOut
-        )).to.be.revertedWith('InvalidSignature');
+        // await expect(bridgeContract.connect(user1).transferOut(
+        //     tokenContract.address,
+        //     user1.address,
+        //     amountToTransfer.sub(totalCommission), 
+        //     totalCommission,
+        //     5,
+        //     invalidSignatureTransferOut
+        // )).to.be.revertedWith('InvalidSignature');
 
     });
 

@@ -323,6 +323,7 @@ pub fn transfer_out(
     let bytes = cook_msg_transfer_out(
         *self_contract_hash,
         token_contract,
+        signer,
         recipient,
         amount,
         commission,
