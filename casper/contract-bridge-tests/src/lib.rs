@@ -7,7 +7,7 @@ mod tests {
         ERC20_INSUFFIENT_BALANCE_ERROR_CODE, TEST_ACCOUNT_BALANCE, TEST_AMOUNT, TEST_BLOCK_TIME,
         TEST_COMMISSION_PERCENT, TEST_CORRECT_DEADLINE, TEST_DESTINATION_ADDRESS,
         TEST_DESTINATION_CHAIN, TEST_EXPIRED_DEADLINE, TEST_GAS_COMMISSION, TEST_NONCE,
-        TEST_STABLE_COMMISSION_PERCENT,
+        TEST_STABLE_COMMISSION_PERCENT, TEST_TRANSACTION_ID,
     };
     use crate::utils::{
         arbitrary_user, arbitrary_user_key, bridge_in, bridge_out, deploy_bridge,
@@ -21,7 +21,7 @@ mod tests {
     use casper_types::bytesrepr::Bytes;
     use casper_types::{runtime_args, RuntimeArgs, U128, U256};
     use casper_types::{ApiError, Key};
-    use contract_bridge::entry_points::{EP_CHECK_PARAMS, PARAM_BYTES, PARAM_SIGNATURE};
+    use contract_bridge::entry_points::{EP_CHECK_PARAMS, PARAM_BYTES, PARAM_SIGNATURE, PARAM_TRANSACTION_ID};
     use contract_util::signatures::cook_msg_transfer_out;
     use contract_util::{error::Error::Contract as ContractError, signatures::cook_msg_bridge_in};
 
@@ -104,6 +104,7 @@ mod tests {
             TEST_AMOUNT(),
             TEST_CORRECT_DEADLINE(),
             TEST_NONCE(),
+            TEST_TRANSACTION_ID(),
             TEST_GAS_COMMISSION(),
             Vec::new(),
         );
@@ -124,6 +125,7 @@ mod tests {
             gas_commission,
             stable_commission_percent,
             nonce,
+            transaction_id,
             sender,
         } = funds_in_event
         {
@@ -181,6 +183,7 @@ mod tests {
             TEST_AMOUNT(),
             TEST_CORRECT_DEADLINE(),
             TEST_NONCE(),
+            TEST_TRANSACTION_ID(),
             TEST_GAS_COMMISSION(),
             Vec::new(),
         );
@@ -234,6 +237,7 @@ mod tests {
             gas_commission,
             stable_commission_percent,
             nonce,
+            transaction_id,
             sender,
         } = in_event
         {
@@ -244,6 +248,7 @@ mod tests {
             assert_eq!(gas_commission, TEST_GAS_COMMISSION());
             assert_eq!(stable_commission_percent, TEST_STABLE_COMMISSION_PERCENT());
             assert_eq!(nonce, TEST_NONCE());
+            assert_eq!(transaction_id, TEST_TRANSACTION_ID());
             assert_eq!(sender, Key::Account(context.account.address));
         } else {
             panic!("Expected BridgeEvent::FundsIn but got {in_event:?}");
@@ -310,6 +315,7 @@ mod tests {
             U256::one() * TEST_ACCOUNT_BALANCE * 2,
             TEST_CORRECT_DEADLINE(),
             TEST_NONCE(),
+            TEST_TRANSACTION_ID(),
             TEST_GAS_COMMISSION(),
             Vec::new(),
         );
@@ -362,6 +368,7 @@ mod tests {
             U256::one() * TEST_ACCOUNT_BALANCE,
             TEST_EXPIRED_DEADLINE(),
             TEST_NONCE(),
+            TEST_TRANSACTION_ID(),
             TEST_GAS_COMMISSION(),
             Vec::new(),
         );
@@ -394,6 +401,7 @@ mod tests {
             U256::one() * TEST_ACCOUNT_BALANCE,
             TEST_CORRECT_DEADLINE(),
             TEST_NONCE(),
+            TEST_TRANSACTION_ID(),
             TEST_GAS_COMMISSION(),
             Vec::new(),
         );
@@ -406,6 +414,7 @@ mod tests {
             U256::one() * TEST_ACCOUNT_BALANCE,
             TEST_CORRECT_DEADLINE(),
             TEST_NONCE(),
+            TEST_TRANSACTION_ID(),
             TEST_GAS_COMMISSION(),
             Vec::new(),
         );
@@ -438,6 +447,7 @@ mod tests {
             U256::one() * TEST_ACCOUNT_BALANCE,
             TEST_CORRECT_DEADLINE(),
             TEST_NONCE(),
+            TEST_TRANSACTION_ID(),
             TEST_GAS_COMMISSION() + TEST_ACCOUNT_BALANCE,
             Vec::new(),
         );
@@ -477,6 +487,7 @@ mod tests {
             TEST_GAS_COMMISSION(),
             TEST_CORRECT_DEADLINE(),
             TEST_NONCE() + 3,
+            TEST_TRANSACTION_ID(),
             &TEST_DESTINATION_CHAIN(),
             &TEST_DESTINATION_ADDRESS(),
         );
@@ -487,6 +498,7 @@ mod tests {
             U256::one() * TEST_ACCOUNT_BALANCE,
             TEST_CORRECT_DEADLINE(),
             TEST_NONCE(),
+            TEST_TRANSACTION_ID(),
             TEST_GAS_COMMISSION(),
             bytes_incorrect_deadline,
         );
@@ -503,6 +515,7 @@ mod tests {
             TEST_GAS_COMMISSION(),
             TEST_CORRECT_DEADLINE(),
             TEST_NONCE(),
+            TEST_TRANSACTION_ID(),
             &TEST_DESTINATION_CHAIN(),
             &TEST_DESTINATION_ADDRESS(),
         );
@@ -513,6 +526,7 @@ mod tests {
             U256::one() * TEST_ACCOUNT_BALANCE,
             TEST_CORRECT_DEADLINE(),
             TEST_NONCE(),
+            TEST_TRANSACTION_ID(),
             TEST_GAS_COMMISSION(),
             bytes_incorrect_amount,
         );
@@ -529,6 +543,7 @@ mod tests {
             TEST_GAS_COMMISSION(),
             TEST_CORRECT_DEADLINE() + 1,
             TEST_NONCE(),
+            TEST_TRANSACTION_ID(),
             &TEST_DESTINATION_CHAIN(),
             &TEST_DESTINATION_ADDRESS(),
         );
@@ -539,6 +554,7 @@ mod tests {
             U256::one() * TEST_ACCOUNT_BALANCE,
             TEST_CORRECT_DEADLINE(),
             TEST_NONCE(),
+            TEST_TRANSACTION_ID(),
             TEST_GAS_COMMISSION(),
             bytes_incorrect_deadline,
         );
@@ -555,6 +571,7 @@ mod tests {
             TEST_GAS_COMMISSION(),
             TEST_CORRECT_DEADLINE(),
             TEST_NONCE() + 3,
+            TEST_TRANSACTION_ID(),
             &TEST_DESTINATION_CHAIN(),
             &TEST_DESTINATION_ADDRESS(),
         );
@@ -565,6 +582,35 @@ mod tests {
             U256::one() * TEST_ACCOUNT_BALANCE,
             TEST_CORRECT_DEADLINE(),
             TEST_NONCE(),
+            TEST_TRANSACTION_ID(),
+            TEST_GAS_COMMISSION(),
+            bytes_incorrect_deadline,
+        );
+        let error = execution_error(&mut context, deploy_item);
+        let expected_error: ApiError = ContractError(BridgeError::InvalidSignature).into();
+        assert_eq!(error.to_string(), expected_error.to_string());
+
+        // 4_1. Incorrect Transaction id
+        let bytes_incorrect_deadline = cook_msg_bridge_in(
+            bridge_hash,
+            token_package_hash,
+            context.account.address,
+            U256::one() * TEST_ACCOUNT_BALANCE,
+            TEST_GAS_COMMISSION(),
+            TEST_CORRECT_DEADLINE(),
+            TEST_NONCE(),
+            TEST_TRANSACTION_ID() + 55555,
+            &TEST_DESTINATION_CHAIN(),
+            &TEST_DESTINATION_ADDRESS(),
+        );
+        let deploy_item = bridge_in(
+            bridge_hash,
+            token_package_hash,
+            context.account.address,
+            U256::one() * TEST_ACCOUNT_BALANCE,
+            TEST_CORRECT_DEADLINE(),
+            TEST_NONCE(),
+            TEST_TRANSACTION_ID(),
             TEST_GAS_COMMISSION(),
             bytes_incorrect_deadline,
         );
@@ -582,6 +628,7 @@ mod tests {
             TEST_GAS_COMMISSION(),
             TEST_CORRECT_DEADLINE(),
             TEST_NONCE() + 3,
+            TEST_TRANSACTION_ID(),
             &TEST_DESTINATION_CHAIN(),
             &TEST_DESTINATION_ADDRESS(),
         );
@@ -592,6 +639,7 @@ mod tests {
             U256::one() * TEST_ACCOUNT_BALANCE,
             TEST_CORRECT_DEADLINE(),
             TEST_NONCE(),
+            TEST_TRANSACTION_ID(),
             TEST_GAS_COMMISSION(),
             bytes_incorrect_deadline,
         );
@@ -609,6 +657,7 @@ mod tests {
             TEST_GAS_COMMISSION(),
             TEST_CORRECT_DEADLINE(),
             TEST_NONCE(),
+            TEST_TRANSACTION_ID(),
             "WRONG_CHAIN",
             &TEST_DESTINATION_ADDRESS(),
         );
@@ -619,6 +668,7 @@ mod tests {
             U256::one() * TEST_ACCOUNT_BALANCE,
             TEST_CORRECT_DEADLINE(),
             TEST_NONCE(),
+            TEST_TRANSACTION_ID(),
             TEST_GAS_COMMISSION(),
             bytes_incorrect_deadline,
         );
@@ -635,6 +685,7 @@ mod tests {
             TEST_GAS_COMMISSION(),
             TEST_CORRECT_DEADLINE(),
             TEST_NONCE(),
+            TEST_TRANSACTION_ID(),
             &TEST_DESTINATION_CHAIN(),
             "WRONG_ADDRESS",
         );
@@ -645,6 +696,7 @@ mod tests {
             U256::one() * TEST_ACCOUNT_BALANCE,
             TEST_CORRECT_DEADLINE(),
             TEST_NONCE(),
+            TEST_TRANSACTION_ID(),
             TEST_GAS_COMMISSION(),
             bytes_incorrect_deadline,
         );
@@ -678,6 +730,7 @@ mod tests {
             TEST_AMOUNT(),
             TEST_CORRECT_DEADLINE(),
             TEST_NONCE(),
+            TEST_TRANSACTION_ID(),
             TEST_GAS_COMMISSION(),
             Vec::new(),
         );
@@ -691,6 +744,7 @@ mod tests {
             (TEST_AMOUNT()) - expected_total_commission(),
             expected_total_commission(),
             TEST_NONCE() + 1,
+            TEST_TRANSACTION_ID(),
         );
 
         // 1. Incorrect Token
@@ -702,6 +756,7 @@ mod tests {
             (TEST_AMOUNT()) - expected_total_commission(),
             expected_total_commission(),
             TEST_NONCE() + 1,
+            TEST_TRANSACTION_ID(),
             bytes.clone(),
         );
 
@@ -718,6 +773,7 @@ mod tests {
             (TEST_AMOUNT()) - expected_total_commission() + 1,
             expected_total_commission(),
             TEST_NONCE() + 1,
+            TEST_TRANSACTION_ID(),
             bytes.clone(),
         );
 
@@ -734,11 +790,29 @@ mod tests {
             (TEST_AMOUNT()) - expected_total_commission(),
             expected_total_commission() - 10,
             TEST_NONCE() + 1,
+            TEST_TRANSACTION_ID(),
             bytes.clone(),
         );
         let error = execution_error(&mut context, deploy_item);
         let expected_error: ApiError = ContractError(BridgeError::InvalidSignature).into();
         assert_eq!(error.to_string(), expected_error.to_string());
+
+        // 3. Invalid transaction id
+        let deploy_item = transfer_out(
+            bridge_hash,
+            token_package_hash,
+            context.account.address,
+            recipient_key,
+            (TEST_AMOUNT()) - expected_total_commission(),
+            expected_total_commission(),
+            TEST_NONCE() + 1,
+            U256::one() * 11,
+            bytes.clone(),
+        );
+        let error = execution_error(&mut context, deploy_item);
+        let expected_error: ApiError = ContractError(BridgeError::InvalidSignature).into();
+        assert_eq!(error.to_string(), expected_error.to_string());
+
 
         // 4. Invalid recipient
         let recipient_key_invalid = UserAccount::unique_account(&mut context2, 1).key();
@@ -751,6 +825,7 @@ mod tests {
             (TEST_AMOUNT()) - expected_total_commission(),
             expected_total_commission(),
             TEST_NONCE() + 1,
+            TEST_TRANSACTION_ID(),
             bytes.clone(),
         );
         let error = execution_error(&mut context, deploy_item);
@@ -784,6 +859,7 @@ mod tests {
             TEST_AMOUNT(),
             TEST_CORRECT_DEADLINE(),
             TEST_NONCE(),
+            TEST_TRANSACTION_ID(),
             TEST_GAS_COMMISSION(),
             Vec::new(),
         );
@@ -884,6 +960,7 @@ mod tests {
                 PARAM_AMOUNT => TEST_AMOUNT(),
                 PARAM_GAS_COMMISSION => TEST_GAS_COMMISSION(),
                 PARAM_NONCE => TEST_NONCE(),
+                PARAM_TRANSACTION_ID => TEST_TRANSACTION_ID(),
                 PARAM_DESTINATION_ADDRESS => TEST_DESTINATION_ADDRESS(),
                 PARAM_DESTINATION_CHAIN => TEST_DESTINATION_CHAIN(),
                 PARAM_SENDER => user.key(),
@@ -1012,6 +1089,7 @@ mod tests {
             U256::one() * 1000,
             TEST_CORRECT_DEADLINE(),
             TEST_NONCE(),
+            TEST_TRANSACTION_ID(),
             TEST_GAS_COMMISSION(),
             Vec::new(),
         );
@@ -1051,6 +1129,7 @@ mod tests {
             TEST_AMOUNT(),
             TEST_CORRECT_DEADLINE(),
             TEST_NONCE(),
+            TEST_TRANSACTION_ID(),
             TEST_GAS_COMMISSION(),
             Vec::new(),
         );
@@ -1064,6 +1143,7 @@ mod tests {
             (TEST_AMOUNT()) - expected_total_commission(),
             expected_total_commission(),
             TEST_NONCE() + 1,
+            TEST_TRANSACTION_ID(),
             Vec::new(),
         );
         get_context(&mut context, deploy_item).expect_success();
@@ -1125,6 +1205,7 @@ mod tests {
             TEST_AMOUNT(),
             TEST_CORRECT_DEADLINE(),
             TEST_NONCE(),
+            TEST_TRANSACTION_ID(),
             TEST_GAS_COMMISSION(),
             Vec::new(),
         );
@@ -1139,6 +1220,7 @@ mod tests {
             TEST_AMOUNT() * 2,
             expected_total_commission(),
             TEST_NONCE() + 1,
+            TEST_TRANSACTION_ID(),
             Vec::new(),
         );
 
@@ -1328,6 +1410,7 @@ mod tests {
             TEST_AMOUNT(),
             TEST_CORRECT_DEADLINE(),
             TEST_NONCE(),
+            TEST_TRANSACTION_ID(),
             TEST_GAS_COMMISSION(),
             Vec::new(),
         );
@@ -1407,6 +1490,7 @@ mod tests {
             TEST_AMOUNT(),
             TEST_CORRECT_DEADLINE(),
             TEST_NONCE(),
+            TEST_TRANSACTION_ID(),
             TEST_GAS_COMMISSION(),
             Vec::new(),
         );

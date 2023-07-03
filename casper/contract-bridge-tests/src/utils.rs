@@ -445,6 +445,7 @@ pub fn bridge_in(
     amount: U256,
     deadline: U256,
     nonce: U128,
+    transaction_id: U256,
     gas_commission: U256,
     mut signature_bytes: Vec<u8>,
 ) -> DeployItem {
@@ -458,23 +459,12 @@ pub fn bridge_in(
             gas_commission,
             deadline,
             nonce,
+            transaction_id,
             &TEST_DESTINATION_CHAIN(),
             &TEST_DESTINATION_ADDRESS(),
         );
     }
     let signature_bytes = get_signature_bytes(&signature_bytes, test_signer_secret_key());
-
-    // println!("bridge_hash {bridge_hash}");
-    // println!("token_package_hash {token_package_hash}");
-    // println!("account_address {account_address}");
-    // println!("PARAM_TOKEN_CONTRACT {token_package_hash}"); // +
-    // println!("PARAM_AMOUNT {}", U256::one() * 1_000_000_000_000u64); // +
-    // println!("PARAM_GAS_COMMISSION {}", gas_commission); // +
-    // println!("PARAM_DEADLINE {deadline}"); // +
-    // println!("PARAM_NONCE {nonce}"); // +
-    // println!("PARAM_DESTINATION_CHAIN {}", TEST_DESTINATION_CHAIN()); // +
-    // println!("PARAM_DESTINATION_ADDRESS {}", TEST_DESTINATION_ADDRESS()); // +
-    // println!("PARAM_SIGNATURE1111 {:?}", signature_bytes.clone());
 
     simple_deploy_builder(account_address)
         .with_stored_session_hash(
@@ -486,6 +476,7 @@ pub fn bridge_in(
                 PARAM_GAS_COMMISSION => gas_commission,
                 PARAM_DEADLINE => deadline,
                 PARAM_NONCE => nonce,
+                PARAM_TRANSACTION_ID => transaction_id,
                 PARAM_DESTINATION_CHAIN => TEST_DESTINATION_CHAIN(),
                 PARAM_DESTINATION_ADDRESS => TEST_DESTINATION_ADDRESS(),
                 PARAM_SIGNATURE => signature_bytes,
@@ -502,6 +493,7 @@ pub fn transfer_out(
     amount_to_transfer: U256,
     commission: U256,
     nonce: U128,
+    transaction_id: U256,
     mut signature_bytes: Vec<u8>,
 ) -> DeployItem {
     if signature_bytes.is_empty() {
@@ -513,6 +505,7 @@ pub fn transfer_out(
             amount_to_transfer,
             commission,
             nonce,
+            transaction_id
         );
     }
     let signature_bytes = get_signature_bytes(&signature_bytes, test_signer_secret_key());
@@ -526,6 +519,7 @@ pub fn transfer_out(
                 PARAM_AMOUNT => amount_to_transfer,
                 PARAM_COMMISSION => commission,
                 PARAM_NONCE => nonce,
+                PARAM_TRANSACTION_ID => transaction_id,
                 PARAM_RECIPIENT => recipient,
                 PARAM_SIGNATURE => signature_bytes,
             },

@@ -19,6 +19,8 @@ pub(crate) fn read<T: CLTyped + FromBytes>(param_name: &str) -> T {
 }
 
 /// Writes a value to the specific param
+
+#[inline(always)]
 pub(crate) fn write<T: CLTyped + ToBytes>(param_name: &str, value: T) {
     storage::write(uref(param_name), value);
 }

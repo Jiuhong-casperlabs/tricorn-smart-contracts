@@ -3,8 +3,9 @@ import '@nomiclabs/hardhat-ethers'
 import '@primitivefi/hardhat-dodoc';
 import "@typechain/hardhat";
 import "@nomiclabs/hardhat-etherscan";
-import "hardhat-gas-reporter";
+// import "hardhat-gas-reporter";
 import "solidity-coverage";
+import "@nomiclabs/hardhat-waffle";
 import {resolve} from "path";
 import "@nomicfoundation/hardhat-chai-matchers";
 import chai from "chai";
@@ -21,11 +22,10 @@ chai.use(solidity);
 
 dotenvConfig({path: resolve(__dirname, "./.env")});
 
-
 export default {
   defaultNetwork: "hardhat",
   solidity: {
-    version: "0.8.17",
+    version: "0.8.19",
     settings: {
       optimizer: {
         enabled: true,
@@ -38,7 +38,13 @@ export default {
     goerli: {
       url: process.env.GOERLI_URL,
       accounts: [process.env.DEPLOY_KEY],
-      //gas: 2100000,
+      gas: 2100000,
+      gasPrice: 120000000000
+    },
+    sepolia: {
+      url: process.env.SEPOLIA_URL,
+      accounts: [process.env.DEPLOY_KEY],
+      gas: 2100000,
       gasPrice: 120000000000
     },
     ethereum: {

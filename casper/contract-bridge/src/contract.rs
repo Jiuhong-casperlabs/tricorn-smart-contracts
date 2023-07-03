@@ -150,7 +150,7 @@ pub fn get_stable_commission_percent() -> U256 {
 }
 
 pub fn set_stable_commission_percent(value: U256) {
-    if value > U256::one() * 100 {
+    if value > U256::one() * 50 {
         revert(BridgeError::InvalidCommissionPercent)
     }
 
@@ -162,6 +162,8 @@ pub fn get_signer() -> String {
 }
 
 /// value - ecrecover compatible public key
+
+#[inline(always)]
 pub fn set_signer(value: String) {
     check_public_key(&value);
     uref::write(PARAM_SIGNER, value)
@@ -182,6 +184,7 @@ pub fn bridge_in(
     gas_commission: U256,
     deadline: U256,
     nonce: U128,
+    transaction_id: U256,
     destination_chain: String,
     destination_address: String,
     signature: [u8; 64],
@@ -198,6 +201,7 @@ pub fn bridge_in(
         gas_commission,
         deadline,
         nonce,
+        transaction_id,
         &destination_chain,
         &destination_address,
     );
@@ -220,6 +224,7 @@ pub fn bridge_in(
         amount,
         gas_commission,
         nonce,
+        transaction_id,
         destination_chain,
         destination_address,
         from_key,
@@ -231,6 +236,7 @@ pub fn bridge_in_confirm(
     amount: U256,
     gas_commission: U256,
     nonce: U128,
+    transaction_id: U256,
     destination_chain: String,
     destination_address: String,
     sender: Key,
@@ -252,6 +258,7 @@ pub fn bridge_in_confirm(
         gas_commission,
         stable_commission_percent: get_stable_commission_percent(),
         nonce,
+        transaction_id,
         sender,
     };
 
@@ -313,6 +320,7 @@ pub fn transfer_out(
     amount: U256,
     commission: U256,
     nonce: U128,
+    transaction_id: U256,
     recipient: Key,
     signature: [u8; 64],
 ) {
@@ -328,6 +336,7 @@ pub fn transfer_out(
         amount,
         commission,
         nonce,
+        transaction_id
     );
     interface::onchain::check_params(*self_contract_hash, bytes, signature, nonce);
 

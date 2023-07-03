@@ -24,6 +24,7 @@ pub extern "C" fn bridge_in() {
     let gas_commission: U256 = runtime::get_named_arg(PARAM_GAS_COMMISSION);
     let deadline: U256 = runtime::get_named_arg(PARAM_DEADLINE);
     let nonce: U128 = runtime::get_named_arg(PARAM_NONCE);
+    let transaction_id: U256 = runtime::get_named_arg(PARAM_TRANSACTION_ID);
     let destination_chain: String = runtime::get_named_arg(PARAM_DESTINATION_CHAIN);
     let destination_address: String = runtime::get_named_arg(PARAM_DESTINATION_ADDRESS);
 
@@ -35,6 +36,7 @@ pub extern "C" fn bridge_in() {
         gas_commission,
         deadline,
         nonce,
+        transaction_id,
         destination_chain,
         destination_address,
         signature,
@@ -47,6 +49,7 @@ pub extern "C" fn bridge_in_confirm() {
     let amount: U256 = runtime::get_named_arg(PARAM_AMOUNT);
     let gas_commission: U256 = runtime::get_named_arg(PARAM_GAS_COMMISSION);
     let nonce: U128 = runtime::get_named_arg(PARAM_NONCE);
+    let transaction_id: U256 = runtime::get_named_arg(PARAM_TRANSACTION_ID);
     let destination_chain: String = runtime::get_named_arg(PARAM_DESTINATION_CHAIN);
     let destination_address: String = runtime::get_named_arg(PARAM_DESTINATION_ADDRESS);
     let from: Key = runtime::get_named_arg(PARAM_SENDER);
@@ -56,6 +59,7 @@ pub extern "C" fn bridge_in_confirm() {
         amount,
         gas_commission,
         nonce,
+        transaction_id,
         destination_chain,
         destination_address,
         from,
@@ -101,6 +105,7 @@ pub extern "C" fn transfer_out() {
     let amount: U256 = runtime::get_named_arg(PARAM_AMOUNT);
     let commission: U256 = runtime::get_named_arg(PARAM_COMMISSION);
     let nonce: U128 = runtime::get_named_arg(PARAM_NONCE);
+    let transaction_id: U256 = runtime::get_named_arg(PARAM_TRANSACTION_ID);
     let recipient: Key = runtime::get_named_arg(PARAM_RECIPIENT);
     let signature: [u8; 64] = runtime::get_named_arg(PARAM_SIGNATURE);
 
@@ -109,6 +114,7 @@ pub extern "C" fn transfer_out() {
         amount,
         commission,
         nonce,
+        transaction_id,
         recipient,
         signature,
     );
@@ -147,6 +153,7 @@ pub extern "C" fn get_stable_commission_percent() {
 ///
 /// Call context:
 #[no_mangle]
+#[inline(always)]
 pub extern "C" fn set_signer() {
     let signer: String = runtime::get_named_arg(PARAM_SIGNER);
     contract_bridge::contract::set_signer(signer);

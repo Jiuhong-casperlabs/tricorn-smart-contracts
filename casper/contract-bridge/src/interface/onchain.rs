@@ -7,7 +7,7 @@ use casper_types::{
 use crate::entry_points::{
     EP_BRIDGE_IN_CONFIRM, EP_CHECK_PARAMS, PARAM_AMOUNT, PARAM_BYTES, PARAM_DESTINATION_ADDRESS,
     PARAM_DESTINATION_CHAIN, PARAM_GAS_COMMISSION, PARAM_NONCE, PARAM_SENDER, PARAM_SIGNATURE,
-    PARAM_TOKEN_CONTRACT,
+    PARAM_TOKEN_CONTRACT, PARAM_TRANSACTION_ID,
 };
 
 pub fn bridge_in_confirm(
@@ -16,6 +16,7 @@ pub fn bridge_in_confirm(
     amount: U256,
     gas_commission: U256,
     nonce: U128,
+    transaction_id: U256,
     destination_chain: String,
     destination_address: String,
     from: Key,
@@ -28,6 +29,7 @@ pub fn bridge_in_confirm(
             args.insert(PARAM_AMOUNT, amount)?;
             args.insert(PARAM_GAS_COMMISSION, gas_commission)?;
             args.insert(PARAM_NONCE, nonce)?;
+            args.insert(PARAM_TRANSACTION_ID, transaction_id)?;
             args.insert(PARAM_DESTINATION_CHAIN, destination_chain)?;
             args.insert(PARAM_DESTINATION_ADDRESS, destination_address)?;
             args.insert(PARAM_SENDER, from)?;

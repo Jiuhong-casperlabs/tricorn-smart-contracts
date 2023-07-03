@@ -13,8 +13,11 @@ pub(crate) fn TEST_STABLE_COMMISSION_PERCENT() -> U256 {
 pub(crate) fn TEST_NONCE() -> U128 {
     U128::one() * 555
 }
+pub(crate) fn TEST_TRANSACTION_ID() -> U256 {
+    U256::one() * 111
+}
 pub(crate) fn TEST_COMMISSION_PERCENT() -> U256 {
-    U256::one() * 54
+    U256::one() * 34
 }
 pub(crate) fn TEST_CORRECT_DEADLINE() -> U256 {
     U256::one() * 1672943628

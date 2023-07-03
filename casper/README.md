@@ -17,7 +17,8 @@ Open `contract-bridge-tests/lib.rs` and run tests. If you use Rust Analyzer, you
 $ cd contract-bridge
 $ just build-contract-release
 $ cd ../util
-$ just run-release deploy-bridge-contract -c ../contract-bridge/bridge-contract.wasm
+$ just run-release deploy-bridge-contract -c ../contract-bridge/target/wasm32-unknown-unknown/release/bridge-contract.wasm
+$ cp contract-bridge/target/wasm32-unknown-unknown/release/bridge-contract.wasm contract-bridge-tests/src/contract_bridge.wasm # for testing
 ```
 You'll receive a hash like: `c7e1bc80565e834ebf0ad24331a7b93dd820db6991d51e5b40eac5afe041680d`
 

@@ -75,6 +75,7 @@ enum Command {
         gas_commission: String,
         deadline: String,
         nonce: String,
+        transaction_id: String,
         destination_chain: String,
         destination_address: String,
         signature: String,
@@ -164,6 +165,7 @@ async fn main() -> anyhow::Result<()> {
             amount,
             gas_commission,
             nonce,
+            transaction_id,
             deadline,
             destination_chain,
             destination_address,
@@ -178,6 +180,7 @@ async fn main() -> anyhow::Result<()> {
                 gas_commission,
                 deadline,
                 nonce,
+                transaction_id,
                 signature,
             )
             .await?
@@ -396,6 +399,7 @@ async fn bridge_transfer_in(
     gas_commission: String,
     deadline: String,
     nonce: String,
+    transaction_id: String,
     signature: String,
 ) -> anyhow::Result<()> {
     let bridge_env: BridgeEnv = envy::from_env().context("couldn't parse environment")?;
@@ -410,6 +414,7 @@ async fn bridge_transfer_in(
         U256::from_dec_str(&gas_commission).context("couldn't parse gas_commission")?;
     let deadline = U256::from_dec_str(&deadline).context("couldn't parse deadline")?;
     let nonce = U128::from_dec_str(&nonce).context("couldn't parse amount")?;
+    let transaction_id = U256::from_dec_str(&transaction_id).context("couldn't parse amount")?;
 
     let deploy_hash = client
         .bridge_in(
@@ -419,6 +424,7 @@ async fn bridge_transfer_in(
             gas_commission,
             deadline,
             nonce,
+            transaction_id,
             destination_chain,
             destination_address,
             signature,

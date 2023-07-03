@@ -14,6 +14,7 @@ impl CasperClient {
         gas_commission: U256,
         deadline: U256,
         nonce: U128,
+        transaction_id: U256,
         destination_chain: String,
         destination_address: String,
         signature: String,

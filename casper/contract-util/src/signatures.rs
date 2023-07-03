@@ -23,15 +23,16 @@ pub fn cook_msg_bridge_in(
     gas_commission: U256,
     deadline: U256,
     nonce: U128,
+    transaction_id: U256,
     destination_chain: &str,
     destination_address: &str,
-
 ) -> Vec<u8> {
     let prefix = "TRICORN_BRIDGE_IN";
     let amount = amount.to_bytes().unwrap();
     let gas_commission = gas_commission.to_bytes().unwrap();
     let deadline = deadline.to_bytes().unwrap();
     let nonce = nonce.to_bytes().unwrap();
+    let transaction_id = transaction_id.to_bytes().unwrap();
     let destination_chain = destination_chain.as_bytes();
     let destination_address = destination_address.as_bytes();
 
@@ -44,7 +45,9 @@ pub fn cook_msg_bridge_in(
     bytes.extend_from_slice(&gas_commission);
     bytes.extend_from_slice(&deadline);
     bytes.extend_from_slice(&nonce);
+    bytes.extend_from_slice(&transaction_id);
     bytes.extend_from_slice(destination_chain);
+    bytes.push(0x00);
     bytes.extend_from_slice(&destination_address);
     bytes
 }
@@ -57,11 +60,13 @@ pub fn cook_msg_transfer_out(
     amount_to_transfer: U256,
     commission: U256,
     nonce: U128,
+    transaction_id: U256
 ) -> Vec<u8> {
     let prefix = "TRICORN_TRANSFER_OUT";
     let amount = amount_to_transfer.to_bytes().unwrap();
     let commission = commission.to_bytes().unwrap();
     let nonce = nonce.to_bytes().unwrap();
+    let transaction_id = transaction_id.to_bytes().unwrap();
     let recipient = recipient.to_bytes().unwrap();
 
     let mut bytes = Vec::new();
@@ -73,11 +78,13 @@ pub fn cook_msg_transfer_out(
     bytes.extend_from_slice(&amount);
     bytes.extend_from_slice(&commission);
     bytes.extend_from_slice(&nonce);
+    bytes.extend_from_slice(&transaction_id);
     bytes
 }
 
+#[inline(always)]
 pub fn check_public_key(signer: &str) {
-    VerifyingKey::from_public_key_pem(signer).unwrap_or_else(|e| panic!("{e}"));
+    VerifyingKey::from_public_key_pem(signer).unwrap_or_else(|e| panic!("Not valid key {e}"));
 }
 
 pub fn sign_data(bytes: &[u8], signer: &str) -> Signature {

@@ -20,6 +20,7 @@ pub enum BridgeEvent {
         gas_commission: U256,
         stable_commission_percent: U256,
         nonce: U128,
+        transaction_id: U256,
         sender: Key,
     },
     FundsOut {
@@ -57,6 +58,7 @@ impl ToBytes for BridgeEvent {
                 gas_commission,
                 stable_commission_percent,
                 nonce,
+                transaction_id,
                 sender,
             } => {
                 buffer.push(BRIDGE_EVENT_FUNDS_IN_TAG);
@@ -67,6 +69,7 @@ impl ToBytes for BridgeEvent {
                 buffer.extend(gas_commission.to_bytes()?);
                 buffer.extend(stable_commission_percent.to_bytes()?);
                 buffer.extend(nonce.to_bytes()?);
+                buffer.extend(transaction_id.to_bytes()?);
                 buffer.extend(sender.to_bytes()?);
             }
             BridgeEvent::FundsOut {
@@ -120,6 +123,7 @@ impl ToBytes for BridgeEvent {
                 gas_commission,
                 stable_commission_percent,
                 nonce,
+                transaction_id,
                 sender,
             } => {
                 destination_chain.serialized_length()
@@ -177,6 +181,7 @@ impl FromBytes for BridgeEvent {
                 let (gas_commission, remainder) = U256::from_bytes(remainder)?;
                 let (stable_commission_percent, remainder) = U256::from_bytes(remainder)?;
                 let (nonce, remainder) = U128::from_bytes(remainder)?;
+                let (transaction_id, remainder) = U256::from_bytes(remainder)?;
                 let (sender, remainder) = Key::from_bytes(remainder)?;
                 Ok((
                     BridgeEvent::FundsIn {
@@ -187,6 +192,7 @@ impl FromBytes for BridgeEvent {
                         gas_commission,
                         stable_commission_percent,
                         nonce,
+                        transaction_id,
                         sender,
                     },
                     remainder,
