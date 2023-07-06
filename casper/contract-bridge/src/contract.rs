@@ -163,7 +163,7 @@ pub fn get_signer() -> String {
 
 /// value - ecrecover compatible public key
 
-#[inline(always)]
+// #[inline(always)]
 pub fn set_signer(value: String) {
     check_public_key(&value);
     uref::write(PARAM_SIGNER, value)

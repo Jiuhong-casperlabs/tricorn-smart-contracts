@@ -153,7 +153,7 @@ pub extern "C" fn get_stable_commission_percent() {
 ///
 /// Call context:
 #[no_mangle]
-#[inline(always)]
+// #[inline(always)]
 pub extern "C" fn set_signer() {
     let signer: String = runtime::get_named_arg(PARAM_SIGNER);
     contract_bridge::contract::set_signer(signer);
