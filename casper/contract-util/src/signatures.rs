@@ -96,7 +96,7 @@ pub fn get_signature_bytes(bytes: &[u8], signer: &str) -> [u8; 64] {
     sign_data(bytes, signer).as_bytes()[0..64].try_into().unwrap()
 }
 
-/// Return whether signatures is correct
+#[inline(always)]
 pub fn verify_signature(signer: &str, signature_bytes: &[u8; 64], bytes: &Bytes) -> bool {
     let verify_key = VerifyingKey::from_public_key_pem(signer).unwrap();
 
