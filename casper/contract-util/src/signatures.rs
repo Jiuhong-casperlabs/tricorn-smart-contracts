@@ -83,8 +83,8 @@ pub fn cook_msg_transfer_out(
 }
 
 #[inline(always)]
-pub fn check_public_key(signer: &str) {
-    VerifyingKey::from_public_key_pem(signer).unwrap_or_else(|e| panic!("Not valid key {e}"));
+pub fn check_public_key(signer: &str) -> VerifyingKey {
+    VerifyingKey::from_public_key_pem(signer).unwrap_or_else(|e| panic!("Not valid key {e}"))
 }
 
 pub fn sign_data(bytes: &[u8], signer: &str) -> Signature {
@@ -96,9 +96,8 @@ pub fn get_signature_bytes(bytes: &[u8], signer: &str) -> [u8; 64] {
     sign_data(bytes, signer).as_bytes()[0..64].try_into().unwrap()
 }
 
-#[inline(always)]
 pub fn verify_signature(signer: &str, signature_bytes: &[u8; 64], bytes: &Bytes) -> bool {
-    let verify_key = VerifyingKey::from_public_key_pem(signer).unwrap();
+    let verify_key = check_public_key(signer);
 
     let signature_bytes = signature_bytes.to_vec();
 
