@@ -12,10 +12,10 @@ futures = "0.3"
 
 connectors-common = { path = "../connectors-common" }
 
-casper-types   = { git = "ssh://git@github.com/ElusiveMori/casper-node.git", rev = "06ad2300310587186f16bc4acaef94efcc4fc8f7" }
-casper-node    = { git = "ssh://git@github.com/ElusiveMori/casper-node.git", rev = "06ad2300310587186f16bc4acaef94efcc4fc8f7" }
-casper-hashing = { git = "ssh://git@github.com/ElusiveMori/casper-node.git", rev = "06ad2300310587186f16bc4acaef94efcc4fc8f7" }
-casper-execution-engine = { git = "ssh://git@github.com/ElusiveMori/casper-node.git", rev = "06ad2300310587186f16bc4acaef94efcc4fc8f7" }
+casper-types   = { git = "ssh://git@github.com/BoostyLabs/casper-node.git", rev = "0246a4ab4874bfce71b5a9591dba20d54c54bd51" }
+casper-node    = { git = "ssh://git@github.com/BoostyLabs/casper-node.git", rev = "0246a4ab4874bfce71b5a9591dba20d54c54bd51" }
+casper-hashing = { git = "ssh://git@github.com/BoostyLabs/casper-node.git", rev = "0246a4ab4874bfce71b5a9591dba20d54c54bd51" }
+casper-execution-engine = { git = "ssh://git@github.com/BoostyLabs/casper-node.git", rev = "0246a4ab4874bfce71b5a9591dba20d54c54bd51" }
 jsonrpc-lite   = "0.5"
 
 dotenv = "0.15"

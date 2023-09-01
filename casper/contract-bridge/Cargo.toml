@@ -10,14 +10,15 @@ onchain = ["contract-util/onchain"]
 test-support=["casper-contract/test-support"]
 
 [dependencies]
-casper-contract = { git = "ssh://git@github.com/ElusiveMori/casper-node.git", rev = "06ad2300310587186f16bc4acaef94efcc4fc8f7", default-features = false }
-casper-types   = { git = "ssh://git@github.com/ElusiveMori/casper-node.git", rev = "06ad2300310587186f16bc4acaef94efcc4fc8f7" }
+casper-contract = { git = "ssh://git@github.com/BoostyLabs/casper-node.git", rev = "0246a4ab4874bfce71b5a9591dba20d54c54bd51", default-features = false }
+casper-types   = { git = "ssh://git@github.com/BoostyLabs/casper-node.git", rev = "0246a4ab4874bfce71b5a9591dba20d54c54bd51" }
 contract-util = { path = "../contract-util", default-features = false }
 casper-common = { path = "../casper-common" }
 num_enum = { version = "0.5.7", default-features = false }
 once_cell = { version = "1.12.0", default-features = false }
 base64 = { version = "0.13.0", default-features = false, features = ["alloc"] }
 thiserror = { version = "1.0.31", optional = true }
+ecdsa = { version = "0.13.4"} 
 
 [[bin]]
 name = "bridge-contract"

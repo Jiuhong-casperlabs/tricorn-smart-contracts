@@ -17,5 +17,5 @@ anyhow = "1.0.0"
 thiserror = "1.0.0"
 tonic = "0.8"
 
-casper-types = { git = "ssh://git@github.com/ElusiveMori/casper-node.git", rev = "06ad2300310587186f16bc4acaef94efcc4fc8f7", optional = true }
+casper-types = { git = "ssh://git@github.com/BoostyLabs/casper-node.git", rev = "0246a4ab4874bfce71b5a9591dba20d54c54bd51", optional = true }
 primitive-types = { version = "0.11.1", optional = true }
